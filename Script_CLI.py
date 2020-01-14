@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import request
+
 #Init variables
 URL       = 'https://api.georide.fr'
 HEADER    = [ 'Content-Type' => 'application/json charset=UTF-8' ]
