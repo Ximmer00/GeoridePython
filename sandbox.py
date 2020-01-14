@@ -16,5 +16,7 @@ encoded_data = json.dumps(data).encode('utf-8')
 print(encoded_data)
 
 response = requests.post(GEORIDE_API_HOST + GEORIDE_API_ENDPOINT_LOGIN, data=encoded_data, headers={'Content-Type': 'application/json'})
-print(response.text)
+json_rep = response.json()
+
+print(json_rep)
 
