@@ -3,66 +3,51 @@
 import request
 
 #Init variables
-URL       = 'https://api.georide.fr'
-HEADER    = [ 'Content-Type' => 'application/json charset=UTF-8' ]
+GEORIDE_API_HOST = "https://api.georide.fr"
+GEORIDE_API_ENDPOINT_LOGIN = "/user/login"
+GEORIDE_API_ENDPOINT_NEW_TOKEN = "/user/new-token"
+GEORIDE_API_ENDPOINT_LOGOUT = "/user/logout"
+GEORIDE_API_ENDPOINT_USER = "/user"
+GEORIDE_API_ENDPOINT_TRAKERS = "/user/trackers"
+GEORIDE_API_ENDPOINT_TRIPS = "/tracker/:trackerId/trips"
+GEORIDE_API_ENDPOINT_LOCK = "/tracker/:trackerId/lock"
+GEORIDE_API_ENDPOINT_UNLOCK = "/tracker/:trackerId/unlock"
+GEORIDE_API_ENDPOINT_TOGGLE_LOCK = "/tracker/:trackerId/toggleLock"
+GEORIDE_API_ENDPOINT_POSITIONS = "/tracker/:trackerId/trips/positions"
+GEORIDE_API_ENDPOINT_TRIP_SHARE = "/tracker/:trackerId/share/trip"
 
 ################################################################################
 ################################################################################
 #########################   Functions for remote requests ######################
 
-def request_to_api( sub_url, method, head, encoded_data ) {
-    ##say "request_to_api def"
+def request_to_api( sub_url, reqType, head, encoded_data ):
+    if reqType == 'POST' :
+        response = requests.post(GEORIDE_API_HOST + sub_url, data=encoded_data, headers={'Content-Type': 'application/json'})
+    elif reqType == 'GET':
+        response = requests.get(GEORIDE_API_HOST + sub_url, headers=head)
+    else:
+        print("ALERTE")
 
-    #this function is used to sending any request to the API.
-    ua = LWP::UserAgent->new()
-    r
-    if (encoded_data) {
-        r =
-          HTTP::Request->new( method, URL . sub_url, head, encoded_data )
-              #Creating the the http request
-    }
-    else {
-        r =
-          HTTP::Request->new( method, URL . sub_url, head )
-              #Creating the the http request
-    }
-    res = ua->request(r)    #sending the http request
-    if ( res->is_success ) {
-        return res->decoded_content    #returning the response decoded
-    }
-    elsif ( res->status_line =~ /429/ ) {
-        system("sleep 1")
-        res = ua->request(r)         #sending the http request
-    }
-    else {
-        die res->status_line           #Stopping programm with the error
-    }
-}
+    if response:
+        return response    #returning the response decoded
+    else:
+        print(r.status_code)           #Stopping programm with the error
+        sys.exit
 
-def get_auth_header (token){
 
-    #say "get_auth_header def"
+def get_auth_header (token):
+    return{"Authorization": "Bearer " + token}
 
-    #simple function to return a auth header (taking token)
-    return [ 'Authorization' => 'Bearer ' . token ]
-}
 
-def get_token (email, password) {
+def get_token (email, password):
     #function to getting the account token (available 30 days)
-    data = {
-        email    => email,
-        password => password
-    }                                #creating data for email and password
-    auth_data =
-      encode_utf8( encode_json(data) )  #tranforming to be use in http request
-    response =
-      request_to_api( '/user/login', 'POST', HEADER, auth_data )
-          #request to API to get back the auth Token
+    data = {'email': email, 'password': password}
+    encoded_data = json.dumps(data).encode('utf-8')
+    request_to_api(sub_url=GEORIDE_API_ENDPOINT_LOGIN, reqType='POST', encoded_data=encoded_data )
     content = parse_json(response)    #transforming reponse in hash
     return content->{'authToken'}         #giving back the token
-}
 
-def get_trackers (auth_header) {    #This def needs improvement about listing of trackers
+def get_trackers (auth_header):    #This def needs improvement about listing of trackers
     content     = request_to_api( '/user/trackers', 'GET', auth_header )
     response    = parse_json(content)
     # print Dumper(response)
