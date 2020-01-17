@@ -6,18 +6,25 @@ import json
 import re
 import getopt
 
-print("hello")
-for arg in sys.argv[1:]:
-    print(arg)
-args = '-e email_var -p lepass -c lacomma'.split()
 try:
-    opts = getopt.getopt(sys.argv[1:], 'e:p:c:h')
-    print(opts)
-    # print(args)
+    opts, args = getopt.getopt(sys.argv[1:], 'e:p:c:h')
 except getopt.GetoptError:
     #Print a message or do something useful
     print('Something went wrong!')
     sys.exit(2)
+
+for o, a in opts:
+    if o == '-h':
+        usage()
+        sys.exit(2)
+    elif (o == '-e' or o == '--email'):
+        email = a
+    elif (o == '-p' or o == '--password'):
+        password = a
+    elif (o == '-c' or o == '--command'):
+        command = a
+
+print(email, command, password)
 
 
 # GEORIDE_API_HOST = "https://api.georide.fr"
