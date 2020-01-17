@@ -7,7 +7,7 @@ import re
 import getopt
 
 print("hello")
-for arg in sys.argv():
+for arg in sys.argv[1:]:
     print(arg)
 args = '-e email_var -p lepass -c lacomma'.split()
 try:
@@ -57,7 +57,7 @@ except getopt.GetoptError:
 #     return {"Authorization": "Bearer " + token}
 #
 # def get_token(email, password):
-#     """Récupère le token d'authentificatio"""
+#     """Recupere le token d'authentificatio"""
 #     # function to getting the account token (available 30 days)
 #     data = {'email': email, 'password': password}
 #     encoded_data = json.dumps(data).encode('utf-8')
