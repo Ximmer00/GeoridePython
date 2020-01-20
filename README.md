@@ -19,12 +19,13 @@ Pour utiliser le script, il faut avoir un tracker ([Site de GeoRide](https://geo
 
 Lancement du script :
 
-    perl Script.pl $email $password $action
+    python Georide_CLI.py --email 'youremail@domain.com' --password 'yourpass' --command
 
 Les actions possibles sont :
   - lock => verrouille le boitier
   - unlock => deverouille le boitier
   - status => affiche un status résumé du boitier
+  - locate => localise la position actuelle du boîtier
 
 Pour comprendre le fonctionnement voici la documentation de l'utilisation de l'API se trouve [ici](https://api.georide.fr "Doc de l'API").
 
