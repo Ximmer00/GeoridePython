@@ -56,7 +56,7 @@ def get_auth_header(token):
 
 
 def get_token(email, password):
-    """Récupère le token d'authentificatio"""
+    """Recupere le token d'authentificatio"""
     # function to getting the account token (available 30 days)
     data = {'email': email, 'password': password}
     encoded_data = json.dumps(data).encode('utf-8')
@@ -66,7 +66,7 @@ def get_token(email, password):
 
 
 def get_trackers(auth_header):  # This def needs improvement about listing of trackers
-    """Récupère la liste des trackers que l'user peut lock"""
+    """Recupere la liste des trackers que l'user peut lock"""
     content = get_to_api(GEORIDE_API_ENDPOINT_TRAKERS, header=auth_header)
     response = content.json()
     trackers = []
