@@ -5,6 +5,7 @@ import json
 import re
 import sys
 import getopt
+import time
 
 # Init variables
 GEORIDE_API_HOST = "https://api.georide.fr"
@@ -45,7 +46,7 @@ def post_to_api(sub_url, *args, **kwargs):
     if response:
         return response  # returning the response decoded
     else:
-        print(respose.status_code)  # Stopping programm with the error
+        print(response.status_code)  # Stopping programm with the error
         sys.exit()
 
 
@@ -77,7 +78,7 @@ def get_trackers(auth_header):  # This def needs improvement about listing of tr
 
 def lock_tracker(tracker_id, bearer_header):
     try:
-        response = post_to_api(GEORIDE_API_HOST + GEORIDE_API_ENDPOINT_LOCK.replace(':trackerId', str(tracker_id)), head=bearer_header)
+        response = post_to_api(GEORIDE_API_ENDPOINT_LOCK.replace(':trackerId', str(tracker_id)), header=bearer_header)
     except Exception as e:
         print(e)
         sys.exit(2)
@@ -88,7 +89,7 @@ def lock_tracker(tracker_id, bearer_header):
 
 def unlock_tracker(tracker_id, bearer_header):
     try:
-        response = post_to_api(GEORIDE_API_HOST + GEORIDE_API_ENDPOINT_UNLOCK.replace(':trackerId', str(tracker_id)), head=bearer_header)
+        response = post_to_api(GEORIDE_API_ENDPOINT_UNLOCK.replace(':trackerId', str(tracker_id)), header=bearer_header)
     except Exception as e:
         print(e)
         sys.exit(2)
@@ -97,10 +98,19 @@ def unlock_tracker(tracker_id, bearer_header):
     return True
 
 
-def get_pos(bearer_header):
-    tracker_raw = get_trackers(bearer_header)
-    tracker = tracker_raw.json()
-    return tracker[0]['latitude'], tracker[0]['longitude']
+def toggle_tracker(tracker_id, bearer_header):
+    try:
+        response = post_to_api(GEORIDE_API_ENDPOINT_TOGGLE_LOCK.replace(':trackerId', str(tracker_id)), header=bearer_header)
+    except Exception as e:
+        print(e)
+        sys.exit(2)
+    if response.status_code != 204:
+        return False
+    return True
+
+
+def get_pos(tracker):
+    return tracker['latitude'], tracker['longitude']
 
 ################################################################################
 ################################################################################
@@ -108,7 +118,7 @@ def get_pos(bearer_header):
 
 def usage():
     print("Usage of Script_CLI.py :\n")
-    print("Script_CLI.py --email your@email.com --password your_password --command command_to_run\n")
+    print("python Script_CLI.py --email your@email.com --password your_password --command command_to_run\n")
     print("Commands are : 'lock', 'unlock', 'status', 'locate'.")
 
 def show_loc(lat, lon):
@@ -121,7 +131,7 @@ def printing_state(tracker_state, tracker_name):
     state = ("unlock", "lock")[tracker_state]
     print(f"{tracker_name} is {state}")
 
-def show_status(auth_header):
+def show_status(auth_header, tracker_id):
     tracker = get_trackers(auth_header)
     tracker_name = tracker[0]['trackerName']
     kilometers = tracker[0]['odometer'] / 1000
@@ -143,6 +153,7 @@ def parse_cli():
     except getopt.GetoptError:
         #Print a message or do something useful
         print('Something went wrong!')
+        usage()
         sys.exit(2)
 
     for o, a in opts:
@@ -158,6 +169,13 @@ def parse_cli():
         else:
             usage()
             sys.exit(2)
+    try:
+        if email is None or command is None or password is None:
+            usage()
+            sys.exit(2)
+    except UnboundLocalError:
+        usage()
+        sys.exit(2)
     return email, password, command
 
 def config_main():
@@ -167,17 +185,21 @@ def config_main():
       sys.exit(1)
     return email_main, password_main, command
 
-def command_treat(command, auth_header, tracker_id):
+def command_treat(command, auth_header, tracker):
     if (command == "lock"):
-        lock_tracker(tracker_id, auth_header)
+        lock_tracker(tracker['trackerId'], auth_header)
         print("Locked !")
     elif(command == "unlock"):
-        unlock_tracker(tracker_id, auth_header)
+        unlock_tracker(tracker['trackerId'], auth_header)
         print("Unlocked !")
+    elif(command == "toggle"):
+        toggle_tracker(tracker['trackerId'], auth_header)
+        print("Toggled !")
     elif(command == "status"):
-        show_status(auth_header)
+        show_status(auth_header, tracker)
     elif(command == "locate"):
-        show_loc(get_pos(auth_header))
+        lat, long = get_pos(tracker)
+        show_loc(lat,long)
     else:
         print("Wrong command !\nExiting now..")
         sys.exit(1)
@@ -187,7 +209,7 @@ def Main():
     mail, password, command = config_main()
     header = get_auth_header(get_token(mail, password))
     tracker_raw = get_trackers(header)
-    tracker_id = tracker_raw[0]['trackerId']
-    command_treat(command, header, tracker_id)
+    tracker = tracker_raw[0]
+    command_treat(command, header, tracker)
 
 Main()
